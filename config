@@ -1,0 +1,82 @@
+#!/bin/bash
+# tput_menu: a menu driven system information program
+
+    BG_BLUE="$(tput setab 4)"
+    BG_BLACK="$(tput setab 0)"
+    FG_GREEN="$(tput setaf 2)"
+    FG_WHITE="$(tput setaf 7)"
+
+    # Save screen
+    tput smcup
+
+    # Display menu until selection == 0
+
+    while [[ $REPLY != 0 ]]; do
+      echo -n ${BG_BLUE}${FG_WHITE}
+      clear
+	echo "Welcome to Debian Jessie"
+	echo  ' '
+      	echo '1 ' 'show hostname'
+	echo '2 ' 'new hostname'
+	echo '3 ' 'show discspace'
+	echo '4 ' 'show homedrive'
+	echo '5 ' 'Change timezone'
+	echo '6 ' 'Change locales'
+	echo '7 ' 'update the system'
+	echo '8 ' 'resize root partition'
+	echo '0 ' 'exit'
+read -${BASH_VERSION+e}r number
+
+
+      #read -p "Enter selection [0-3] > " selection
+      
+      # Clear area beneath menu
+      tput cup 10 0
+      echo -n ${BG_BLACK}${FG_GREEN}
+      tput ed
+      tput cup 11 0
+
+      # Act on selection
+      case $number in
+        1)  echo "Hostname: $HOSTNAME"
+            uptime
+            ;;
+        2)
+                read -p "new hostname: " hostname
+                echo "$1"> /etc/hostname $hostname | grep -v '^$'
+                ;;
+
+        3)  df -h
+            ;;
+        4)  if [[ $(id -u) -eq 0 ]]; then
+              echo "Home Space Utilization (All Users)"
+              du -sh /home/* 2> /dev/null
+            else
+              echo "Home Space Utilization ($USER)"
+              du -s $HOME/* 2> /dev/null | sort -nr
+            fi
+            ;;
+	5)
+        	dpkg-reconfigure tzdata
+        	;;
+    	6)
+        	dpkg-reconfigure locales
+        	;;
+    	7)
+        	apt-get update && apt-get dist-upgrade
+        	;;
+    	8)
+        	resize
+		;;
+	*)
+        	exit
+		;;
+      esac
+      printf "\n\nPress any key to continue."
+      read -n 1
+    done
+
+    # Restore screen
+    tput rmcup
+    echo "Program terminated."
+tput_menu
